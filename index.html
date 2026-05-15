@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>Seven</title>
+    <title>Seven | AI Vibe</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -12,46 +12,48 @@
         }
     </script>
     <style>
+        html, body { height: 100%; overflow: hidden; background: #000; margin: 0; }
+        #app-container { display: flex; width: 100vw; height: 100vh; overflow: hidden; }
+        #main-sidebar { width: 280px; height: 100%; border-right: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; display: flex; flex-direction: column; transition: 0.3s; background: #000; }
+        #chat-section { flex-grow: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; background: #000; }
+        #chat-messages-viewport { flex-grow: 1; overflow-y: auto; scroll-behavior: smooth; }
         .custom-scroll::-webkit-scrollbar { width: 2px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: rgba(157, 78, 221, 0.3); }
-        .fused-text {
-            background: linear-gradient(to bottom right, #00F0FF, #9D4EDD);
-            background-clip: text; -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent; font-weight: 900;
-        }
-        /* Strict separation of sections */
-        #app-container { display: flex; width: 100vw; height: 100vh; overflow: hidden; background: #000; }
-        #main-sidebar { width: 300px; border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; flex-shrink: 0; }
-        #chat-section { flex-grow: 1; display: flex; flex-direction: column; position: relative; height: 100%; overflow: hidden; }
-        
+        .fused-text { background: linear-gradient(to bottom right, #00F0FF, #9D4EDD); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
         @media (max-width: 768px) {
-            #main-sidebar { position: absolute; z-index: 50; height: 100%; transform: translateX(-100%); transition: 0.3s; }
+            #main-sidebar { position: absolute; z-index: 50; transform: translateX(-100%); }
             #main-sidebar.open { transform: translateX(0); }
         }
     </style>
 </head>
-<body class="bg-pureBlack text-slate-100 font-sans">
-
+<body class="text-slate-100 font-sans">
     <div id="app-container">
-        <aside id="main-sidebar" class="bg-pureBlack">
+        <aside id="main-sidebar">
             <div class="p-6 flex flex-col h-full">
                 <div class="flex items-center justify-between mb-8">
-                    <span class="text-xl tracking-tighter fused-text">SEVEN</span>
+                    <span class="text-xl tracking-tighter fused-text uppercase">Seven</span>
                     <button onclick="toggleSidebar()" class="md:hidden text-slate-400"><i data-lucide="x"></i></button>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2 mb-6">
-                    <button onclick="setPersona('nerd')" id="btn-nerd" class="persona-btn p-2 border border-white/10 rounded-lg text-[10px]">🤓 NERD</button>
-                    <button onclick="setPersona('smart')" id="btn-smart" class="persona-btn p-2 border border-neonSky text-neonSky rounded-lg text-[10px]">🧠 GENIUS</button>
-                    <button onclick="setPersona('romantic')" id="btn-romantic" class="persona-btn p-2 border border-white/10 rounded-lg text-[10px]">❤️ LOVE</button>
-                    <button onclick="setPersona('sarcastic')" id="btn-sarcastic" class="persona-btn p-2 border border-white/10 rounded-lg text-[10px]">🙄 SASSY</button>
-                    <button onclick="setPersona('gamer')" id="btn-gamer" class="persona-btn p-2 border border-white/10 rounded-lg text-[10px]">🎮 GAMER</button>
-                    <button onclick="setPersona('mystic')" id="btn-mystic" class="persona-btn p-2 border border-white/10 rounded-lg text-[10px]">🕉️ MYSTIC</button>
+                <div class="mb-6 relative group">
+                    <input type="text" oninput="handleSearch(this.value)" placeholder="Search flows..." 
+                           class="w-full bg-white/5 border border-white/10 rounded-xl py-2 px-10 text-[10px] outline-none focus:border-neonSky/50 transition-all text-slate-300">
+                    <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-500"></i>
                 </div>
 
-                <div class="flex items-center justify-between mb-4">
-                    <span class="text-[10px] font-bold text-slate-500 uppercase">Recent Flows</span>
-                    <button onclick="createNewChat()" class="text-neonSky"><i data-lucide="plus-circle" class="w-5 h-5"></i></button>
+                <div class="grid grid-cols-2 gap-2 mb-6">
+                    <button onclick="setPersona('nerd')" id="btn-nerd" class="persona-btn p-2 border border-white/10 rounded-lg text-[9px]">🤓 NERD</button>
+                    <button onclick="setPersona('smart')" id="btn-smart" class="persona-btn p-2 border border-neonSky text-neonSky bg-white/5 rounded-lg text-[9px]">🧠 SMART</button>
+                    <button onclick="setPersona('romantic')" id="btn-romantic" class="persona-btn p-2 border border-white/10 rounded-lg text-[9px]">❤️ ROMANTIC</button>
+                    <button onclick="setPersona('sarcastic')" id="btn-sarcastic" class="persona-btn p-2 border border-white/10 rounded-lg text-[9px]">🙄 SARCASTIC</button>
+                    <button onclick="setPersona('gamer')" id="btn-gamer" class="persona-btn p-2 border border-white/10 rounded-lg text-[9px]">🎮 GAMER</button>
+                    <button onclick="setPersona('mystic')" id="btn-mystic" class="persona-btn p-2 border border-white/10 rounded-lg text-[9px]">🕉️ MYSTIC</button>
+                    <button onclick="setPersona('hype')" id="btn-hype" class="persona-btn p-2 border border-white/10 rounded-lg text-[9px] col-span-2">🔥 HYPE MAN</button>
+                </div>
+
+                <div class="flex items-center justify-between mb-4 px-1">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">history</span>
+                    <button onclick="createNewChat()" class="text-neonSky hover:scale-110 transition-transform"><i data-lucide="plus-circle" class="w-5 h-5"></i></button>
                 </div>
                 <div id="chat-threads-container" class="flex-1 overflow-y-auto custom-scroll space-y-2"></div>
             </div>
@@ -64,19 +66,19 @@
                 <div class="w-6"></div>
             </header>
 
-            <div id="chat-messages-viewport" class="flex-1 overflow-y-auto p-4 md:p-10 custom-scroll"></div>
+            <div id="chat-messages-viewport" class="p-4 md:p-10 custom-scroll">
+                </div>
 
-            <div class="p-4 bg-pureBlack border-t border-white/5">
-                <form onsubmit="handleMessageSubmit(event)" class="max-w-3xl mx-auto flex gap-3 bg-white/5 border border-white/10 p-2 rounded-2xl">
+            <div class="p-4 bg-pureBlack border-t border-white/5 flex-shrink-0">
+                <form onsubmit="handleMessageSubmit(event)" class="max-w-3xl mx-auto flex gap-3 bg-white/5 border border-white/10 p-2 rounded-2xl focus-within:border-neonSky/50 transition-all">
                     <input type="text" id="chat-message-payload" placeholder="Speak your mind..." autocomplete="off" class="flex-1 bg-transparent px-4 text-sm outline-none text-slate-200">
-                    <button type="submit" class="bg-gradient-to-r from-neonSky to-neonPurple w-11 h-11 flex items-center justify-center rounded-xl transition-transform active:scale-95">
+                    <button type="submit" class="bg-gradient-to-r from-neonSky to-neonPurple w-11 h-11 flex items-center justify-center rounded-xl transition-transform active:scale-90">
                         <i data-lucide="arrow-up" class="w-5 h-5 text-pureBlack"></i>
                     </button>
                 </form>
             </div>
         </main>
     </div>
-
     <script src="app.js"></script>
 </body>
 </html>
