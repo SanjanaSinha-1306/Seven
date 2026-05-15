@@ -144,7 +144,7 @@ function updateChatUIWindow(isTyping = false) {
     `).join('') + (isTyping ? `
         <div class="flex justify-start animate-pulse mb-20">
             <div class="p-3 bg-white/5 border border-neonSky/20 rounded-2xl text-[10px] text-neonSky font-bold uppercase tracking-widest">
-                Seven is vibrating...
+                Seven is Typing...
             </div>
         </div>` : '<div class="h-32"></div>');
 
