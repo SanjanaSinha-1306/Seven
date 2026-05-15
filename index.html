@@ -19,20 +19,27 @@
             background-clip: text; -webkit-background-clip: text;
             -webkit-text-fill-color: transparent; font-weight: 900;
         }
-        #app-container { height: 100vh; height: -webkit-fill-available; display: flex; flex-direction: row; }
-        #main-content { flex: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+        /* Strict separation of sections */
+        #app-container { display: flex; width: 100vw; height: 100vh; overflow: hidden; background: #000; }
+        #main-sidebar { width: 300px; border-right: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; flex-shrink: 0; }
+        #chat-section { flex-grow: 1; display: flex; flex-direction: column; position: relative; height: 100%; overflow: hidden; }
+        
+        @media (max-width: 768px) {
+            #main-sidebar { position: absolute; z-index: 50; height: 100%; transform: translateX(-100%); transition: 0.3s; }
+            #main-sidebar.open { transform: translateX(0); }
+        }
     </style>
 </head>
-<body class="bg-pureBlack text-slate-100 overflow-hidden font-sans">
+<body class="bg-pureBlack text-slate-100 font-sans">
 
     <div id="app-container">
-        <aside id="main-sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-pureBlack border-r border-white/10 flex flex-col transition-transform duration-300 -translate-x-full md:translate-x-0 md:relative">
+        <aside id="main-sidebar" class="bg-pureBlack">
             <div class="p-6 flex flex-col h-full">
-                <div class="flex items-center justify-between mb-6">
-                    <span class="text-xl tracking-widest fused-text">SEVEN</span>
+                <div class="flex items-center justify-between mb-8">
+                    <span class="text-xl tracking-tighter fused-text">SEVEN</span>
                     <button onclick="toggleSidebar()" class="md:hidden text-slate-400"><i data-lucide="x"></i></button>
                 </div>
-                
+
                 <div class="grid grid-cols-2 gap-2 mb-6">
                     <button onclick="setPersona('nerd')" id="btn-nerd" class="persona-btn p-2 border border-white/10 rounded-lg text-[10px]">🤓 NERD</button>
                     <button onclick="setPersona('smart')" id="btn-smart" class="persona-btn p-2 border border-neonSky text-neonSky rounded-lg text-[10px]">🧠 GENIUS</button>
@@ -40,20 +47,20 @@
                     <button onclick="setPersona('sarcastic')" id="btn-sarcastic" class="persona-btn p-2 border border-white/10 rounded-lg text-[10px]">🙄 SASSY</button>
                     <button onclick="setPersona('gamer')" id="btn-gamer" class="persona-btn p-2 border border-white/10 rounded-lg text-[10px]">🎮 GAMER</button>
                     <button onclick="setPersona('mystic')" id="btn-mystic" class="persona-btn p-2 border border-white/10 rounded-lg text-[10px]">🕉️ MYSTIC</button>
-                    <button onclick="setPersona('hype')" id="btn-hype" class="persona-btn p-2 border border-white/10 rounded-lg text-[10px] col-span-2">🔥 HYPE MAN</button>
                 </div>
 
-                <button onclick="createNewChat()" class="w-full py-3 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center gap-2 text-sm mb-4">
-                    <i data-lucide="plus" class="w-4 h-4"></i> New Vibe
-                </button>
-                <div id="chat-threads-container" class="flex-1 overflow-y-auto custom-scroll"></div>
+                <div class="flex items-center justify-between mb-4">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase">Recent Flows</span>
+                    <button onclick="createNewChat()" class="text-neonSky"><i data-lucide="plus-circle" class="w-5 h-5"></i></button>
+                </div>
+                <div id="chat-threads-container" class="flex-1 overflow-y-auto custom-scroll space-y-2"></div>
             </div>
         </aside>
 
-        <main id="main-content">
-            <header class="p-4 border-b border-white/5 flex items-center justify-between md:hidden">
+        <main id="chat-section">
+            <header class="p-4 border-b border-white/5 flex items-center justify-between md:hidden bg-pureBlack">
                 <button onclick="toggleSidebar()"><i data-lucide="menu" class="text-neonPurple"></i></button>
-                <span class="fused-text text-xs">SEVEN</span>
+                <span class="fused-text text-sm tracking-widest">SEVEN</span>
                 <div class="w-6"></div>
             </header>
 
@@ -61,8 +68,8 @@
 
             <div class="p-4 bg-pureBlack border-t border-white/5">
                 <form onsubmit="handleMessageSubmit(event)" class="max-w-3xl mx-auto flex gap-3 bg-white/5 border border-white/10 p-2 rounded-2xl">
-                    <input type="text" id="chat-message-payload" placeholder="Kuch bolo..." autocomplete="off" class="flex-1 bg-transparent px-4 text-sm outline-none text-slate-200">
-                    <button type="submit" class="bg-gradient-to-r from-neonSky to-neonPurple w-11 h-11 flex items-center justify-center rounded-xl">
+                    <input type="text" id="chat-message-payload" placeholder="Speak your mind..." autocomplete="off" class="flex-1 bg-transparent px-4 text-sm outline-none text-slate-200">
+                    <button type="submit" class="bg-gradient-to-r from-neonSky to-neonPurple w-11 h-11 flex items-center justify-center rounded-xl transition-transform active:scale-95">
                         <i data-lucide="arrow-up" class="w-5 h-5 text-pureBlack"></i>
                     </button>
                 </form>
