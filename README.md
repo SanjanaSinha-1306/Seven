@@ -1,6 +1,8 @@
 # SEVEN AI 🧠✨
 
 **Seven** is a sleek, persona-driven AI chat application designed with a "vibe-first" philosophy. Built with a modern tech stack and a neon-fusion aesthetic, it allows users to interact with various AI personalities—ranging from a tech-savvy "Nerd" to a "Sarcastic" genius—within a fully responsive, professional-grade interface.
+
+
 LIVE LINK :
 ([https://seven-vibe.vercel.app](https://seven-vibe.vercel.app/))
 ![Version](https://img.shields.io/badge/version-1.0.0-neonSky)
