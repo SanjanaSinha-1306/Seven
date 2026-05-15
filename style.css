@@ -1,0 +1,19 @@
+/* Ensure the viewport is actually scrollable */
+#chat-messages-viewport {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    padding-bottom: 120px; /* Space for the floating input bar */
+}
+
+/* Custom scrollbar for a clean look */
+#chat-messages-viewport::-webkit-scrollbar {
+    width: 4px;
+}
+
+#chat-messages-viewport::-webkit-scrollbar-thumb {
+    background: rgba(0, 240, 255, 0.1);
+    border-radius: 10px;
+}
