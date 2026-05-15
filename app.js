@@ -1,5 +1,5 @@
 /**
- * SEVEN AI - Fixed Mobile UI & UX
+ * SEVEN AI - Fixed UI & Mobile UX
  */
 
 const SYSTEM_PERSONAS = {
@@ -19,7 +19,7 @@ let state = {
     editingMessageIndex: null
 };
 
-let pressTimer; // For long-press edit logic
+let pressTimer; // Timer for hold-to-edit logic
 
 const save = () => localStorage.setItem('seven_ultra_final', JSON.stringify(state));
 const load = () => {
@@ -79,7 +79,7 @@ async function handleMessageSubmit(event) {
                 messages: [
                     { 
                         role: "system", 
-                        content: `${SYSTEM_PERSONAS[chat.persona]} RULE: Talk like a real Indian friend. Mix English and Hindi. Keep it short. and when someone talk in hindi then talk in hindi othwewise keep talking in english.` 
+                        content: `${SYSTEM_PERSONAS[chat.persona]} RULE: Talk like a real Indian friend. Mix English and Hindi. Keep it short. and when someone talk in hindi then talk in hindi othwewise keep talking in english` 
                     },
                     ...chat.history.map(m => ({ 
                         role: m.role === 'model' ? 'assistant' : 'user', 
@@ -92,28 +92,30 @@ async function handleMessageSubmit(event) {
         const data = await res.json();
         chat.history.push({ role: 'model', content: data.choices[0].message.content });
     } catch (e) {
-        chat.history.push({ role: 'model', content: "Arre yaar, server down hai lagta hai. 💀" });
+        chat.history.push({ role: 'model', content: "Arre yaar, vibe break ho gayi. 💀" });
     }
     
     updateChatUIWindow(false); 
     save();
 }
 
-function deleteMessage(chatId, msgIndex) {
+// Logic for Long Press / Hold to Edit
+function startPress(index) {
+    pressTimer = window.setTimeout(() => editMessage(index), 700);
+}
+
+function cancelPress() {
+    clearTimeout(pressTimer);
+}
+
+function deleteMessage(chatId, index, event) {
+    event.stopPropagation();
     const chat = state.chats.find(c => c.id === chatId);
-    if (chat) {
-        chat.history.splice(msgIndex, 1);
+    if(chat) {
+        chat.history.splice(index, 1);
         save();
         updateChatUIWindow();
     }
-}
-
-// Long Press Logic
-function startPress(index) {
-    pressTimer = window.setTimeout(() => editMessage(index), 800);
-}
-function cancelPress() {
-    clearTimeout(pressTimer);
 }
 
 function updateChatUIWindow(isTyping = false) {
@@ -124,29 +126,29 @@ function updateChatUIWindow(isTyping = false) {
         v.innerHTML = `
             <div class="h-full flex flex-col items-center justify-center text-center opacity-30 select-none">
                 <h2 class="text-4xl md:text-6xl font-black mb-4 uppercase tracking-tighter fused-text">How you doing?</h2>
-                <p class="text-xs uppercase tracking-[0.5em]">Pick a persona and start the flow</p>
+                <p class="text-xs uppercase tracking-[0.5em]">Pick a vibe and start the flow</p>
             </div>`;
         return;
     }
 
     v.innerHTML = chat.history.map((m, i) => `
-        <div class="flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn group">
+        <div class="flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn mb-6 group">
             <div 
                 onmousedown="startPress(${i})" onmouseup="cancelPress()" 
                 ontouchstart="startPress(${i})" ontouchend="cancelPress()"
-                class="relative p-4 rounded-2xl max-w-[85%] md:max-w-[70%] text-sm transition-all active:scale-95 ${
+                class="relative p-4 rounded-2xl max-w-[85%] md:max-w-[70%] text-sm ${
                 m.role === 'user' 
                 ? 'bg-neonPurple/20 border border-neonPurple/40 text-neonPurple shadow-purple-glow' 
                 : 'bg-white/5 border border-white/10 text-slate-100'
             }">
                 ${m.content}
-                <button onclick="deleteMessage('${state.activeChatId}', ${i})" class="absolute -top-2 -right-2 bg-pureBlack border border-white/10 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-red-500">
+                <button onclick="deleteMessage('${state.activeChatId}', ${i}, event)" class="absolute -top-2 -right-2 bg-pureBlack border border-white/10 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-red-500">
                     <i data-lucide="trash-2" class="w-3 h-3"></i>
                 </button>
             </div>
         </div>
     `).join('') + (isTyping ? `
-        <div class="flex justify-start animate-pulse">
+        <div class="flex justify-start animate-pulse mb-6">
             <div class="p-3 bg-white/5 border border-neonSky/20 rounded-2xl text-[10px] text-neonSky font-bold uppercase tracking-widest">
                 Typing...
             </div>
@@ -185,7 +187,7 @@ function deleteChat(id, event) {
 
 function editMessage(index) {
     const chat = state.chats.find(c => c.id === state.activeChatId);
-    if(chat.history[index].role !== 'user') return; // Only edit user messages
+    if(chat.history[index].role !== 'user') return;
     document.getElementById('chat-message-payload').value = chat.history[index].content;
     document.getElementById('chat-message-payload').focus();
     state.editingMessageIndex = index;
