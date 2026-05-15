@@ -1,19 +1,56 @@
-/* Ensure the viewport is actually scrollable */
+/* SEVEN AI - Global Styles */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: #000000;
+    color: #f1f5f9;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+}
+
+/* The core fix for your screen visibility issue */
 #chat-messages-viewport {
     height: 100%;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
     scroll-behavior: smooth;
-    padding-bottom: 120px; /* Space for the floating input bar */
+    /* Massive padding at the bottom so messages sit above the input bar */
+    padding-bottom: 220px !important; 
+    box-sizing: border-box;
 }
 
-/* Custom scrollbar for a clean look */
+/* Hide scrollbar for a clean look but keep functionality */
 #chat-messages-viewport::-webkit-scrollbar {
     width: 4px;
 }
 
 #chat-messages-viewport::-webkit-scrollbar-thumb {
-    background: rgba(0, 240, 255, 0.1);
+    background: rgba(157, 78, 221, 0.2);
     border-radius: 10px;
+}
+
+.fused-text {
+    background: linear-gradient(90deg, #00F0FF, #9D4EDD);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+}
+
+.shadow-purple-glow {
+    box-shadow: 0 0 20px rgba(157, 78, 221, 0.15);
+}
+
+.shadow-sky-glow {
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.4s ease forwards;
 }

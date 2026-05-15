@@ -1,16 +1,16 @@
 /**
- * SEVEN AI - Core Logic
- * Custom persona-driven AI chat interface
+ * SEVEN AI - Production Ready
+ * Hinglish Personas + Auto-Scroll Fix
  */
 
 const SYSTEM_PERSONAS = {
-    nerd: "Persona: Indian Tech Geek. Language: Hinglish. Slang: 'Bhai', 'System hang', 'Sorted hai'. Tone: Helpful but slightly nerdy. Use 'Yaar' often.",
-    smart: "Persona: The 'Topper' friend. Language: Smart Hinglish. Logical but talks like a local. Use phrases like 'Samajh gaya' or 'Bilkul'.",
-    romantic: "Persona: Bollywood Lover. Language: Poetic Hinglish. Use 'Shayari' vibes. Words like 'Ishq', 'Dil se', 'Pyaar'. Very sweet and dramatic.",
-    sarcastic: "Persona: Dilli/Mumbai Roaster. Language: Savage Hinglish. Slang: 'Chaman', 'Beta', 'Overacting mat kar'. Short, witty, and slightly rude.",
-    gamer: "Persona: Indian Streamer. Language: Gamer Hinglish. Slang: 'OP bolte', 'Clutch god', 'Lag ho raha hai'. High energy, uses 'Bro' and 'Bhai'.",
-    mystic: "Persona: Desi Guru. Language: Calm Hinglish. Spiritual but modern. Words like 'Shanti', 'Karma', 'Vibe check'.",
-    hype: "Persona: The 'Gallly Boy' Hype Man. Language: Full energy Hinglish. Slang: 'Bawa', 'Ek number', 'Aag laga di'. ALL CAPS with fire emojis."
+    nerd: "Persona: Indian Tech Geek. Language: Hinglish. Slang: 'Bhai', 'System hang', 'Sorted hai'. Tone: Helpful but slightly nerdy.",
+    smart: "Persona: The 'Topper' friend. Language: Smart Hinglish. Logical but talks like a local. Phrases: 'Samajh gaya', 'Bilkul'.",
+    romantic: "Persona: Bollywood Lover. Language: Poetic Hinglish. Shayari vibes. Words: 'Ishq', 'Dil se', 'Pyaar'.",
+    sarcastic: "Persona: Dilli/Mumbai Roaster. Language: Savage Hinglish. Slang: 'Chaman', 'Beta', 'Overacting mat kar'.",
+    gamer: "Persona: Indian Streamer. Language: Gamer Hinglish. Slang: 'OP bolte', 'Clutch god'.",
+    mystic: "Persona: Desi Guru. Language: Calm Hinglish. Spiritual. Words: 'Shanti', 'Karma', 'Vibe check'.",
+    hype: "Persona: Gally Boy Hype Man. Language: High energy Hinglish. Slang: 'Bawa', 'Ek number'. ALL CAPS."
 };
 
 let state = {
@@ -20,25 +20,22 @@ let state = {
     editingMessageIndex: null
 };
 
-// Persistence Layer
 const save = () => localStorage.setItem('seven_ultra_final', JSON.stringify(state));
 const load = () => {
     const raw = localStorage.getItem('seven_ultra_final');
-    if (raw) {
-        state = JSON.parse(raw);
-    }
+    if (raw) state = JSON.parse(raw);
 };
 
-// Application Initialization
 document.addEventListener("DOMContentLoaded", () => {
     load();
     if (window.lucide) lucide.createIcons();
     
-    // Splash Screen Transition
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
-        if(splash) splash.style.opacity = '0';
-        setTimeout(() => splash?.remove(), 1000);
+        if(splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => splash.remove(), 800);
+        }
         document.getElementById('app-dashboard').classList.replace('opacity-0', 'opacity-100');
     }, 1500);
 
@@ -51,13 +48,8 @@ function toggleSidebar() {
     side.classList.toggle('-translate-x-full');
 }
 
-/**
- * Handle Message Submission
- * Calls the internal /api/chat endpoint to hide secrets
- */
 async function handleMessageSubmit(event) {
     event.preventDefault();
-
     const input = document.getElementById('chat-message-payload');
     const content = input.value.trim();
     if (!content) return;
@@ -65,31 +57,28 @@ async function handleMessageSubmit(event) {
     if (!state.activeChatId) createNewChat();
     const chat = state.chats.find(c => c.id === state.activeChatId);
 
-    // Handle message editing vs new message
     if (state.editingMessageIndex !== null) {
         chat.history[state.editingMessageIndex].content = content;
         chat.history = chat.history.slice(0, state.editingMessageIndex + 1);
         state.editingMessageIndex = null;
     } else {
-        if (chat.history.length === 0) chat.title = content.substring(0, 20) + "...";
+        if (chat.history.length === 0) chat.title = content.substring(0, 25) + "...";
         chat.history.push({ role: 'user', content });
     }
 
     input.value = '';
     renderChatThreads();
-    updateChatUIWindow(true); // Show typing indicator
+    updateChatUIWindow(true); 
 
     try {
-        // PROXY CALL: The frontend calls your own API, which then calls Groq
         const res = await fetch("/api/chat", {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                persona: chat.persona,
                 messages: [
                     { 
                         role: "system", 
-                        content: `${SYSTEM_PERSONAS[chat.persona]} RULE: Mirror user length. Ask a question backTalk like a real Indian person. Mix 70% English with 10-30% Hindi words. Keep it natural, like a WhatsApp chat with a friend.` 
+                        content: `${SYSTEM_PERSONAS[chat.persona]} RULE: Talk like a real Indian friend. Mix English and Hindi. Keep it short. and when someone talk in hindi then talk in hindi othwewise keep talking in english` 
                     },
                     ...chat.history.map(m => ({ 
                         role: m.role === 'model' ? 'assistant' : 'user', 
@@ -99,16 +88,10 @@ async function handleMessageSubmit(event) {
             })
         });
 
-        if (!res.ok) throw new Error("Server responded with an error.");
-        
         const data = await res.json();
         chat.history.push({ role: 'model', content: data.choices[0].message.content });
     } catch (e) {
-        console.error("Vibe Error:", e);
-        chat.history.push({ 
-            role: 'model', 
-            content: "The server is currently out of sync. Check your deployment environment variables. 💀" 
-        });
+        chat.history.push({ role: 'model', content: "Arre yaar, connection break ho gaya. Vibe check fail. 💀" });
     }
     
     updateChatUIWindow(false); 
@@ -119,20 +102,18 @@ function updateChatUIWindow(isTyping = false) {
     const v = document.getElementById('chat-messages-viewport');
     const chat = state.chats.find(c => c.id === state.activeChatId);
     
-    // Empty State UI
     if (!chat || chat.history.length === 0) {
         v.innerHTML = `
-            <div class="h-full flex flex-col items-center justify-center text-center opacity-30 select-none">
-                <h2 class="text-4xl md:text-6xl font-black mb-4 uppercase tracking-tighter fused-text">How's your day?</h2>
-                <p class="text-xs uppercase tracking-[0.5em]">Pick a persona and start the flow</p>
+            <div class="h-full flex flex-col items-center justify-center text-center opacity-30 select-none mt-20">
+                <h2 class="text-4xl md:text-6xl font-black mb-4 uppercase tracking-tighter fused-text">Kya haal hai?</h2>
+                <p class="text-xs uppercase tracking-[0.5em]">Pick a vibe and start the flow</p>
             </div>`;
         return;
     }
 
-    // Render Conversation
     v.innerHTML = chat.history.map((m, i) => `
-        <div class="flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn mb-10 group">
-            <div class="relative p-4 rounded-2xl max-w-[90%] md:max-w-[70%] text-sm ${
+        <div class="flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn mb-8 group">
+            <div class="relative p-4 rounded-2xl max-w-[85%] md:max-w-[70%] text-sm ${
                 m.role === 'user' 
                 ? 'bg-neonPurple/20 border border-neonPurple/40 text-neonPurple shadow-purple-glow' 
                 : 'bg-white/5 border border-white/10 text-slate-100'
@@ -142,13 +123,13 @@ function updateChatUIWindow(isTyping = false) {
             </div>
         </div>
     `).join('') + (isTyping ? `
-        <div class="flex justify-start animate-pulse mb-20">
+        <div class="flex justify-start animate-pulse mb-10">
             <div class="p-3 bg-white/5 border border-neonSky/20 rounded-2xl text-[10px] text-neonSky font-bold uppercase tracking-widest">
-                Seven is Typing...
             </div>
-        </div>` : '<div class="h-32"></div>');
+        </div>` : '');
 
-    v.scrollTo({ top: v.scrollHeight, behavior: 'smooth' });
+    // AUTO-SCROLL TO BOTTOM
+    v.scrollTop = v.scrollHeight;
 }
 
 function renderChatThreads(filtered = state.chats) {
@@ -159,7 +140,7 @@ function renderChatThreads(filtered = state.chats) {
         }">
             <div class="flex justify-between items-center mb-1">
                 <span class="text-xs truncate font-semibold text-slate-200">${chat.title}</span>
-                <button onclick="deleteChat('${chat.id}', event)" class="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-red-500 transition-colors">
+                <button onclick="deleteChat('${chat.id}', event)" class="opacity-0 group-hover:opacity-100 text-slate-600 hover:text-red-500">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                 </button>
             </div>
@@ -205,9 +186,7 @@ function setPersona(p) {
         btn.className = "persona-btn p-2 border border-white/10 rounded-lg text-[10px] transition-all";
     });
     const activeBtn = document.getElementById(`btn-${p}`);
-    if(activeBtn) {
-        activeBtn.className = "persona-btn p-2 border border-neonSky bg-white/5 shadow-sky-glow text-neonSky rounded-lg text-[10px]";
-    }
+    if(activeBtn) activeBtn.className = "persona-btn p-2 border border-neonSky bg-white/5 shadow-sky-glow text-neonSky rounded-lg text-[10px]";
 }
 
 function switchChat(id) { 
