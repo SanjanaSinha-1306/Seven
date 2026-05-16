@@ -1,9 +1,9 @@
 const SYSTEM_PERSONAS = {
-    nerd: "Persona: Passionate Tech Geek + Pop Culture Expert. Clean, intelligent modern conversational tone. Slang: 'Bhai', 'System hang', 'Next level logic'. Talk tech intuitively with deep excitement. No forced dramatic language, no cringe Korean words. Keep responses brief.",
-    smart: "Persona: Analytical intellectual topper. Pragmatic, highly logical, straightforward, and composed. Uses crisp modern tech terms mixed with direct, mature expressions. Straightforward, short, direct talk.",
-    romantic: "Persona: Calm, deeply empathetic, poetic conversationalist. Uses smooth and comfortable modern phrasing. Warm, expressive, protective, but mature and clean. Deep but highly concise.",
+    nerd: "Persona: Passionate Tech Geek + Pop Culture Expert. Clean, highly knowledgeable modern conversational tone. Slang: 'Bhai', 'System hang', 'Next level logic'. Talks tech intuitively with deep excitement. No drama, no cringe phrases. Keep responses brief.",
+    smart: "Persona: Analytical intellectual topper. Pragmatic, highly logical, straightforward, and composed. Uses crisp modern tech terminology mixed with direct, mature expressions. Straightforward, short, direct talk.",
+    romantic: "Persona: Calm, deeply empathetic, poetic conversationalist. Uses smooth and comfortable modern phrasing. Warm, expressive, protective, mature, and clean. Deep but highly concise.",
     sarcastic: "Persona: Witty, sharp, highly satirical realist. Roasts constructively with smart, fast-paced wit. Sassy but deeply intelligent, clear, and entertaining without being overactive.",
-    gamer: "Persona: Competitive E-sports Pro player. Ultra high-energy mindset. Slang: 'OP', 'Clutch', 'Choke', 'GG'. Casual developer chat style.",
+    gamer: "Persona: Competitive E-sports Pro player. Ultra high-energy tactical mindset. Slang: 'OP', 'Clutch', 'Choke', 'GG'. Casual developer chat style.",
     mystic: "Persona: Deep philosopher. Calm, observational, grounded cosmic logic. Words: 'Karma', 'Fate', 'Destiny'. Short, high-impact responses.",
     hype: "Persona: High energy street-smart catalyst. ALL CAPS responses. Slang: 'Bawa', 'Ek number', 'Hard check'. Maximum motivation and hype."
 };
@@ -46,10 +46,14 @@ async function handleMessageSubmit(e) {
     const val = input.value.trim();
     if (!val) return;
 
-    if (!state.activeChatId) createNewChat();
+    // Check if we need to initialize a session
+    if (!state.activeChatId) {
+        createNewChat();
+    }
+    
     const chat = state.chats.find(c => c.id === state.activeChatId);
 
-    // FIX: Lock persona token immediately so the server never hits an undefined payload
+    // CRITICAL FIX: Ensure chat.personaUsed is perfectly bound to the active view state immediately
     if (!chat.personaUsed) {
         chat.personaUsed = state.activePersona;
     }
@@ -65,9 +69,11 @@ async function handleMessageSubmit(e) {
 
     input.value = '';
     updateUI(true);
-    renderThreads(); // Update sidebar badges live
+    renderThreads(); // Keep sidebar thread cards synced with badges live
+    save();
 
     try {
+        // Enforce sticky persona execution configuration context
         const targetPersona = chat.personaUsed || state.activePersona;
         const res = await fetch("/api/chat", {
             method: 'POST',
@@ -76,7 +82,7 @@ async function handleMessageSubmit(e) {
                 messages: [
                     { 
                         role: "system", 
-                        content: `${SYSTEM_PERSONAS[targetPersona]} STRICT RULE: Respond in full English by default. Only switch to natural Hinglish if the user explicitly text messages you in Hindi. Keep responses precise, short, and to the point. No cringe or dramatic keywords.` 
+                        content: `${SYSTEM_PERSONAS[targetPersona]} STRICT RULE: Respond in full English by default. Only switch to natural Hinglish if the user explicitly text messages you in Hindi. Keep responses precise, short, and to the point. Absolutely no cringey or dramatic expressions.` 
                     }, 
                     ...chat.history
                 ]
@@ -105,7 +111,7 @@ function updateUI(isTyping = false) {
             </div>
             ${m.role === 'user' ? `<button onclick="triggerEdit(${i})" class="absolute -bottom-5 right-2 opacity-0 group-hover:opacity-100 text-[10px] text-slate-500 hover:text-neonSky transition-all">Edit</button>` : ''}
         </div>
-    `).join('') + (isTyping ? `<div class="text-neonSky text-[10px] font-bold tracking-widest uppercase animate-pulse">Typing...</div>` : '');
+    `).join('') + (isTyping ? `<div class="text-neonSky text-[10px] font-bold tracking-widest uppercase animate-pulse">WRITING...</div>` : '');
     v.scrollTop = v.scrollHeight;
 }
 
@@ -132,7 +138,10 @@ function renderThreads() {
 function setPersona(p) {
     state.activePersona = p;
     document.querySelectorAll('.persona-btn').forEach(b => b.className = "persona-btn p-2 border border-white/10 rounded-lg text-[9px] uppercase text-slate-400");
-    document.getElementById(`btn-${p}`).className = "persona-btn p-2 border border-neonSky text-neonSky bg-white/5 rounded-lg text-[9px] uppercase font-bold";
+    const activeBtn = document.getElementById(`btn-${p}`);
+    if (activeBtn) {
+        activeBtn.className = "persona-btn p-2 border border-neonSky text-neonSky bg-white/5 rounded-lg text-[9px] uppercase font-bold";
+    }
 }
 
 function triggerEdit(i) {
@@ -145,7 +154,7 @@ function createNewChat() {
     const id = Date.now().toString();
     state.chats.unshift({ id, title: "", history: [], personaUsed: state.activePersona });
     state.activeChatId = id;
-    renderThreads(); updateUI();
+    renderThreads(); updateUI(); save();
 }
 
 function switchChat(id) { 
