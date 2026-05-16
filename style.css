@@ -1,27 +1,67 @@
-/* SEVEN AI - Clean Responsive Styles */
-body, html {
+/* SEVEN AI - Core Viewport Mechanics */
+html, body {
     margin: 0;
     padding: 0;
-    height: 100%;
+    height: 100vh;
+    height: 100dvh;
     background-color: #000000;
     color: #f1f5f9;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     overflow: hidden;
 }
 
-/* Flexbox viewport that pushes input to the bottom */
-#chat-messages-viewport {
+#app-container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    position: relative;
+}
+
+#main-sidebar {
+    width: 280px;
+    height: 100%;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
+    background: #000000;
+    transition: transform 0.3s ease;
+}
+
+/* Strict Layout Grid - Keeps message viewport and entry tray fully isolated */
+#chat-section {
+    flex-grow: 1;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    height: 100%;
+    overflow: hidden;
+    background: #000000;
+}
+
+#chat-messages-viewport {
     overflow-y: auto;
     scroll-behavior: smooth;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+}
+
+/* Clean lifting margin to protect typing input field from virtual keyboards */
+#input-container-box {
+    width: 100%;
+    background: #000000;
+    padding: 1rem 1rem 2rem 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
     box-sizing: border-box;
 }
 
-.custom-scroll::-webkit-scrollbar { width: 4px; }
+.custom-scroll::-webkit-scrollbar {
+    width: 2px;
+}
 .custom-scroll::-webkit-scrollbar-thumb {
-    background: rgba(157, 78, 221, 0.2);
-    border-radius: 10px;
+    background: rgba(157, 78, 221, 0.3);
 }
 
 .fused-text {
@@ -31,17 +71,31 @@ body, html {
     font-weight: 900;
 }
 
-.shadow-purple-glow { box-shadow: 0 0 20px rgba(157, 78, 221, 0.15); }
-.shadow-sky-glow { box-shadow: 0 0 20px rgba(0, 240, 255, 0.15); }
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+/* Fail-safe Fullscreen Splash Layer */
+#app-splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: #000000;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
 }
 
-.animate-fadeIn { animation: fadeIn 0.4s ease forwards; }
-
-/* Desktop side-by-side fix */
-@media (min-width: 768px) {
-    #app-dashboard { height: 100vh; }
+@media (max-width: 768px) {
+    #main-sidebar {
+        position: absolute;
+        z-index: 50;
+        transform: translateX(-100%);
+    }
+    #main-sidebar.open {
+        transform: translateX(0);
+    }
 }

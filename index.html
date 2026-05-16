@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Seven | AI Vibe</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
@@ -11,22 +12,16 @@
             theme: { extend: { colors: { pureBlack: '#000000', neonSky: '#00F0FF', neonPurple: '#9D4EDD' } } } 
         }
     </script>
-    <style>
-        html, body { height: 100%; overflow: hidden; background: #000; margin: 0; }
-        #app-container { display: flex; width: 100vw; height: 100vh; overflow: hidden; }
-        #main-sidebar { width: 280px; height: 100%; border-right: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; display: flex; flex-direction: column; transition: 0.3s; background: #000; }
-        #chat-section { flex-grow: 1; display: flex; flex-direction: column; height: 100%; overflow: hidden; background: #000; }
-        #chat-messages-viewport { flex-grow: 1; overflow-y: auto; scroll-behavior: smooth; }
-        .custom-scroll::-webkit-scrollbar { width: 2px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(157, 78, 221, 0.3); }
-        .fused-text { background: linear-gradient(to bottom right, #00F0FF, #9D4EDD); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; }
-        @media (max-width: 768px) {
-            #main-sidebar { position: absolute; z-index: 50; transform: translateX(-100%); }
-            #main-sidebar.open { transform: translateX(0); }
-        }
-    </style>
 </head>
 <body class="text-slate-100 font-sans">
+
+    <div id="app-splash-screen">
+        <div class="flex flex-col items-center justify-center space-y-4 text-center">
+            <img src="logo.jpg" alt="Logo" class="w-28 h-28 md:w-32 md:h-32 object-contain rounded-3xl drop-shadow-[0_0_35px_rgba(0,240,255,0.3)]">
+            <h1 class="text-5xl md:text-6xl font-black tracking-widest fused-text uppercase">SEVEN</h1>
+        </div>
+    </div>
+
     <div id="app-container">
         <aside id="main-sidebar">
             <div class="p-6 flex flex-col h-full">
@@ -47,7 +42,7 @@
                     <button onclick="setPersona('romantic')" id="btn-romantic" class="persona-btn p-2 border border-white/10 rounded-lg text-[9px]">❤️ ROMANTIC</button>
                     <button onclick="setPersona('sarcastic')" id="btn-sarcastic" class="persona-btn p-2 border border-white/10 rounded-lg text-[9px]">🙄 SARCASTIC</button>
                     <button onclick="setPersona('gamer')" id="btn-gamer" class="persona-btn p-2 border border-white/10 rounded-lg text-[9px]">🎮 GAMER</button>
-                    <button onclick="setPersona('mystic')" id="btn-mystic" class="persona-btn p-2 border border-white/10 rounded-lg text-[9px]">🕉️ MYSTIC</button>
+                    <button onclick="setPersona('mystic')" id="btn-mystic" class="persona-btn p-2 border border-white/10 rounded-lg text-[9px]">🔮 MYSTIC</button>
                     <button onclick="setPersona('hype')" id="btn-hype" class="persona-btn p-2 border border-white/10 rounded-lg text-[9px] col-span-2">🔥 HYPE MAN</button>
                 </div>
 
@@ -60,19 +55,18 @@
         </aside>
 
         <main id="chat-section">
-            <header class="p-4 border-b border-white/5 flex items-center justify-between md:hidden bg-pureBlack">
+            <header class="p-4 border-b border-white/5 flex items-center justify-between md:hidden bg-pureBlack/90 backdrop-blur-sm">
                 <button onclick="toggleSidebar()"><i data-lucide="menu" class="text-neonPurple"></i></button>
                 <span class="fused-text text-sm tracking-widest">SEVEN</span>
                 <div class="w-6"></div>
             </header>
 
-            <div id="chat-messages-viewport" class="p-4 md:p-10 custom-scroll">
-                </div>
+            <div id="chat-messages-viewport" class="custom-scroll"></div>
 
-            <div class="p-4 bg-pureBlack border-t border-white/5 flex-shrink-0">
+            <div id="input-container-box">
                 <form onsubmit="handleMessageSubmit(event)" class="max-w-3xl mx-auto flex gap-3 bg-white/5 border border-white/10 p-2 rounded-2xl focus-within:border-neonSky/50 transition-all">
                     <input type="text" id="chat-message-payload" placeholder="Speak your mind..." autocomplete="off" class="flex-1 bg-transparent px-4 text-sm outline-none text-slate-200">
-                    <button type="submit" class="bg-gradient-to-r from-neonSky to-neonPurple w-11 h-11 flex items-center justify-center rounded-xl transition-transform active:scale-90">
+                    <button type="submit" class="bg-gradient-to-r from-neonSky to-neonPurple w-11 h-11 flex items-center justify-center rounded-xl flex-shrink-0 transition-transform active:scale-90">
                         <i data-lucide="arrow-up" class="w-5 h-5 text-pureBlack"></i>
                     </button>
                 </form>
