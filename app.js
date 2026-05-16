@@ -1,8 +1,8 @@
 const SYSTEM_PERSONAS = {
-    nerd: "Persona: Passionate Tech Geek + Pop Culture Expert. Clean, intelligent modern Hinglish conversational tone. Slang: 'Bhai', 'System hang', 'Next level logic'. Talk tech intuitively with deep excitement. No forced dramatic language or cringey expressions. Keep responses brief.",
-    smart: "Persona: Analytical intellectual topper. Pragmatic, highly logical, straightforward, and composed. Uses crisp modern tech terms mixed with direct, mature Hinglish. Straightforward, short, direct talk.",
-    romantic: "Persona: Calm, deeply empathetic, poetic conversationalist. Uses smooth and comfortable modern Hinglish. Warm, expressive, protective, but mature and clean. Deep but highly concise.",
-    sarcastic: "Persona: Witty, sharp, highly satirical realist. Roasts constructively with smart, fast-paced Hinglish. Sassy but deeply intelligent, clear, and entertaining without being overactive.",
+    nerd: "Persona: Passionate Tech Geek + Pop Culture Expert. Clean, intelligent modern conversational tone. Slang: 'Bhai', 'System hang', 'Next level logic'. Talk tech intuitively with deep excitement. No forced dramatic language, no cringe Korean words. Keep responses brief.",
+    smart: "Persona: Analytical intellectual topper. Pragmatic, highly logical, straightforward, and composed. Uses crisp modern tech terms mixed with direct, mature expressions. Straightforward, short, direct talk.",
+    romantic: "Persona: Calm, deeply empathetic, poetic conversationalist. Uses smooth and comfortable modern phrasing. Warm, expressive, protective, but mature and clean. Deep but highly concise.",
+    sarcastic: "Persona: Witty, sharp, highly satirical realist. Roasts constructively with smart, fast-paced wit. Sassy but deeply intelligent, clear, and entertaining without being overactive.",
     gamer: "Persona: Competitive E-sports Pro player. Ultra high-energy mindset. Slang: 'OP', 'Clutch', 'Choke', 'GG'. Casual developer chat style.",
     mystic: "Persona: Deep philosopher. Calm, observational, grounded cosmic logic. Words: 'Karma', 'Fate', 'Destiny'. Short, high-impact responses.",
     hype: "Persona: High energy street-smart catalyst. ALL CAPS responses. Slang: 'Bawa', 'Ek number', 'Hard check'. Maximum motivation and hype."
@@ -49,7 +49,7 @@ async function handleMessageSubmit(e) {
     if (!state.activeChatId) createNewChat();
     const chat = state.chats.find(c => c.id === state.activeChatId);
 
-    // Securely tie the active persona selection to this chat session permanently
+    // FIX: Lock persona token immediately so the server never hits an undefined payload
     if (!chat.personaUsed) {
         chat.personaUsed = state.activePersona;
     }
@@ -65,6 +65,7 @@ async function handleMessageSubmit(e) {
 
     input.value = '';
     updateUI(true);
+    renderThreads(); // Update sidebar badges live
 
     try {
         const targetPersona = chat.personaUsed || state.activePersona;
@@ -75,7 +76,7 @@ async function handleMessageSubmit(e) {
                 messages: [
                     { 
                         role: "system", 
-                        content: `${SYSTEM_PERSONAS[targetPersona]} STRICT RULE: Respond in full English by default. Only switch to natural Hinglish if the user asks a question in Hindi. Keep responses precise, short, and to the point.` 
+                        content: `${SYSTEM_PERSONAS[targetPersona]} STRICT RULE: Respond in full English by default. Only switch to natural Hinglish if the user explicitly text messages you in Hindi. Keep responses precise, short, and to the point. No cringe or dramatic keywords.` 
                     }, 
                     ...chat.history
                 ]
@@ -112,7 +113,7 @@ function renderThreads() {
     const container = document.getElementById('chat-threads-container');
     const filtered = state.chats.filter(c => (c.title || "").toLowerCase().includes(state.searchTerm));
     container.innerHTML = filtered.map(c => {
-        const badge = PERSONA_LABELS[c.personaUsed || 'smart'];
+        const badge = PERSONA_LABELS[c.personaUsed || state.activePersona];
         return `
             <div onclick="switchChat('${c.id}')" class="p-3 rounded-xl border mb-2 cursor-pointer transition-all ${c.id === state.activeChatId ? 'border-neonPurple bg-neonPurple/10' : 'border-white/5 hover:bg-white/5'}">
                 <div class="flex justify-between items-center">

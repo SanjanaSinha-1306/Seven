@@ -112,6 +112,6 @@ html, body {
         transform: translateX(0);
     }
     #input-container-box {
-        padding-bottom: 1.25rem;
+        padding-bottom: 1.5rem; /* Lifted up for mobile systems */
     }
 }
