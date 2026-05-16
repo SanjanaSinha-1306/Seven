@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>Seven | AI Vibe</title>
-    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css">
     <script>
         tailwind.config = { 
             theme: { extend: { colors: { pureBlack: '#000000', neonSky: '#00F0FF', neonPurple: '#9D4EDD' } } } 
@@ -17,7 +17,7 @@
 
     <div id="app-splash-screen">
         <div class="flex flex-col items-center justify-center space-y-4 text-center">
-            <img src="logo.jpg" alt="Logo" class="w-28 h-28 md:w-32 md:h-32 object-contain rounded-3xl drop-shadow-[0_0_35px_rgba(0,240,255,0.3)]">
+            <img src="logo.png" alt="Seven Logo" class="w-28 h-28 md:w-32 md:h-32 object-contain rounded-3xl drop-shadow-[0_0_35px_rgba(0,240,255,0.3)]">
             <h1 class="text-5xl md:text-6xl font-black tracking-widest fused-text uppercase">SEVEN</h1>
         </div>
     </div>
@@ -26,7 +26,10 @@
         <aside id="main-sidebar">
             <div class="p-6 flex flex-col h-full">
                 <div class="flex items-center justify-between mb-8">
-                    <span class="text-xl tracking-tighter fused-text uppercase">Seven</span>
+                    <div class="flex items-center gap-3">
+                        <img src="logo.png" alt="Seven Logo" class="w-7 h-7 object-cover rounded-lg border border-white/20">
+                        <span class="text-xl tracking-tighter fused-text uppercase">Seven</span>
+                    </div>
                     <button onclick="toggleSidebar()" class="md:hidden text-slate-400"><i data-lucide="x"></i></button>
                 </div>
 
@@ -55,18 +58,18 @@
         </aside>
 
         <main id="chat-section">
-            <header class="p-4 border-b border-white/5 flex items-center justify-between md:hidden bg-pureBlack/90 backdrop-blur-sm">
+            <header class="p-4 border-b border-white/5 flex items-center justify-between md:hidden bg-pureBlack flex-shrink-0">
                 <button onclick="toggleSidebar()"><i data-lucide="menu" class="text-neonPurple"></i></button>
                 <span class="fused-text text-sm tracking-widest">SEVEN</span>
                 <div class="w-6"></div>
             </header>
 
-            <div id="chat-messages-viewport" class="custom-scroll"></div>
+            <div id="chat-messages-viewport" class="custom-scroll p-4 md:p-10"></div>
 
             <div id="input-container-box">
                 <form onsubmit="handleMessageSubmit(event)" class="max-w-3xl mx-auto flex gap-3 bg-white/5 border border-white/10 p-2 rounded-2xl focus-within:border-neonSky/50 transition-all">
                     <input type="text" id="chat-message-payload" placeholder="Speak your mind..." autocomplete="off" class="flex-1 bg-transparent px-4 text-sm outline-none text-slate-200">
-                    <button type="submit" class="bg-gradient-to-r from-neonSky to-neonPurple w-11 h-11 flex items-center justify-center rounded-xl flex-shrink-0 transition-transform active:scale-90">
+                    <button type="submit" class="bg-gradient-to-r from-neonSky to-neonPurple w-11 h-11 flex items-center justify-center rounded-xl transition-transform active:scale-90 flex-shrink-0">
                         <i data-lucide="arrow-up" class="w-5 h-5 text-pureBlack"></i>
                     </button>
                 </form>

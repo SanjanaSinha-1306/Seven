@@ -27,41 +27,44 @@ html, body {
     display: flex;
     flex-direction: column;
     background: #000000;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Strict Layout Grid - Keeps message viewport and entry tray fully isolated */
 #chat-section {
     flex-grow: 1;
-    display: grid;
-    grid-template-rows: 1fr auto;
+    display: flex;
+    flex-direction: column;
     height: 100%;
     overflow: hidden;
     background: #000000;
+    position: relative;
 }
 
 #chat-messages-viewport {
+    flex-grow: 1;
     overflow-y: auto;
     scroll-behavior: smooth;
     display: flex;
     flex-direction: column;
-    padding: 1.5rem;
+    box-sizing: border-box;
 }
 
-/* Clean lifting margin to protect typing input field from virtual keyboards */
+/* Premium WhatsApp/Insta style lifted bottom tray layout */
 #input-container-box {
     width: 100%;
     background: #000000;
-    padding: 1rem 1rem 2rem 1rem;
+    padding: 0.75rem 1rem 1.75rem 1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
+    flex-shrink: 0;
     box-sizing: border-box;
 }
 
 .custom-scroll::-webkit-scrollbar {
-    width: 2px;
+    width: 4px;
 }
 .custom-scroll::-webkit-scrollbar-thumb {
     background: rgba(157, 78, 221, 0.3);
+    border-radius: 10px;
 }
 
 .fused-text {
@@ -71,7 +74,7 @@ html, body {
     font-weight: 900;
 }
 
-/* Fail-safe Fullscreen Splash Layer */
+/* Splash Screen Layout System */
 #app-splash-screen {
     position: fixed;
     top: 0;
@@ -89,13 +92,26 @@ html, body {
     pointer-events: none;
 }
 
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn { animation: fadeIn 0.25s ease-out forwards; }
+
+/* Mobile Layout Overrides */
 @media (max-width: 768px) {
     #main-sidebar {
         position: absolute;
-        z-index: 50;
+        top: 0;
+        left: 0;
+        z-index: 100;
         transform: translateX(-100%);
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.75);
     }
     #main-sidebar.open {
         transform: translateX(0);
+    }
+    #input-container-box {
+        padding-bottom: 1.25rem;
     }
 }
