@@ -36,7 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
     load(); renderThreads(); updateUI();
     if (window.lucide) lucide.createIcons();
 
-    // Automated 2.5 second splash fade-out block
     setTimeout(() => {
         const splash = document.getElementById('app-splash-screen');
         if (splash) {
@@ -55,14 +54,12 @@ async function handleMessageSubmit(e) {
     const val = input.value.trim();
     if (!val) return;
 
-    // Hard fallback check to prevent chat session disconnects
     if (!state.activeChatId || state.chats.length === 0) {
         createNewChat();
     }
     
     let chat = state.chats.find(c => c.id === state.activeChatId);
     
-    // Defensive safeguard if state tracking goes out of sync
     if (!chat) {
         if (state.chats.length > 0) {
             state.activeChatId = state.chats[0].id;
@@ -73,7 +70,6 @@ async function handleMessageSubmit(e) {
         }
     }
 
-    // Explicitly lock the selected persona down right away
     if (!chat.personaUsed) {
         chat.personaUsed = state.activePersona || 'smart';
     }
@@ -98,38 +94,47 @@ async function handleMessageSubmit(e) {
     try {
         const targetPersona = chat.personaUsed || state.activePersona || 'smart';
         
-        // Clean history filter array payload to ensure the server receives no corrupt/undefined objects
-        const cleanHistory = chat.history.map(item => ({
-            role: item.role === 'model' ? 'assistant' : item.role,
-            content: item.content
-        }));
+        // CRITICAL FIX: Explicitly sanitize payload history array for standard backend integration maps
+        const cleanMessages = [
+            { 
+                role: "system", 
+                content: `${SYSTEM_PERSONAS[targetPersona]} STRICT RULE: Respond in full English by default. Only switch to natural Hinglish if the user explicitly texts you in Hindi. Keep responses precise, short, and to the point. Absolutely no cringey or dramatic expressions.` 
+            }
+        ];
+
+        chat.history.forEach(item => {
+            cleanMessages.push({
+                role: item.role === 'model' || item.role === 'assistant' ? 'assistant' : 'user',
+                content: item.content
+            });
+        });
 
         const res = await fetch("/api/chat", {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                messages: [
-                    { 
-                        role: "system", 
-                        content: `${SYSTEM_PERSONAS[targetPersona]} STRICT RULE: Respond in full English by default. Only switch to natural Hinglish if the user explicitly texts you in Hindi. Keep responses precise, short, and to the point. Absolutely no cringey or dramatic expressions.` 
-                    }, 
-                    ...cleanHistory
-                ]
-            })
+            body: JSON.stringify({ messages: cleanMessages })
         });
 
-        if (!res.ok) throw new Error("Server response error");
+        if (!res.ok) throw new Error(`HTTP Error Status: ${res.status}`);
 
         const data = await res.json();
         
+        // Robust fallback handling pattern for Vercel/Groq JSON data response shapes
+        let textReply = "";
         if (data && data.choices && data.choices[0] && data.choices[0].message) {
-            chat.history.push({ role: 'model', content: data.choices[0].message.content });
+            textReply = data.choices[0].message.content;
+        } else if (data && data.reply) {
+            textReply = data.reply;
+        } else if (typeof data === 'string') {
+            textReply = data;
         } else {
-            throw new Error("Invalid payload mapping structure");
+            throw new Error("Invalid format layout payload");
         }
 
+        chat.history.push({ role: 'model', content: textReply });
+
     } catch (err) {
-        console.error(err);
+        console.error("API Fetch Error Detail:", err);
         chat.history.push({ role: 'model', content: "Connection reset. Let's try sending that response again! ⚡" });
     }
 
