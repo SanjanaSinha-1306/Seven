@@ -111,7 +111,7 @@ function updateUI(isTyping = false) {
             </div>
             ${m.role === 'user' ? `<button onclick="triggerEdit(${i})" class="absolute -bottom-5 right-2 opacity-0 group-hover:opacity-100 text-[10px] text-slate-500 hover:text-neonSky transition-all">Edit</button>` : ''}
         </div>
-    `).join('') + (isTyping ? `<div class="text-neonSky text-[10px] font-bold tracking-widest uppercase animate-pulse">WRITING...</div>` : '');
+    `).join('') + (isTyping ? `<div class="text-neonSky text-[10px] font-bold tracking-widest uppercase animate-pulse">Typing...</div>` : '');
     v.scrollTop = v.scrollHeight;
 }
 
