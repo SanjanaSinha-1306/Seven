@@ -21,7 +21,16 @@ const PERSONA_LABELS = {
 let state = { chats: [], activeChatId: null, activePersona: 'smart', editingIndex: null, searchTerm: '' };
 
 const save = () => localStorage.setItem('seven_vibe_kfixed', JSON.stringify(state));
-const load = () => { const raw = localStorage.getItem('seven_vibe_kfixed'); if (raw) state = JSON.parse(raw); };
+const load = () => { 
+    const raw = localStorage.getItem('seven_vibe_kfixed'); 
+    if (raw) {
+        try {
+            state = JSON.parse(raw);
+        } catch(e) {
+            console.error("Failed to parse state", e);
+        }
+    }
+};
 
 document.addEventListener("DOMContentLoaded", () => {
     load(); renderThreads(); updateUI();
@@ -46,35 +55,55 @@ async function handleMessageSubmit(e) {
     const val = input.value.trim();
     if (!val) return;
 
-    // Check if we need to initialize a session
-    if (!state.activeChatId) {
+    // Hard fallback check to prevent chat session disconnects
+    if (!state.activeChatId || state.chats.length === 0) {
         createNewChat();
     }
     
-    const chat = state.chats.find(c => c.id === state.activeChatId);
+    let chat = state.chats.find(c => c.id === state.activeChatId);
+    
+    // Defensive safeguard if state tracking goes out of sync
+    if (!chat) {
+        if (state.chats.length > 0) {
+            state.activeChatId = state.chats[0].id;
+            chat = state.chats[0];
+        } else {
+            createNewChat();
+            chat = state.chats[0];
+        }
+    }
 
-    // CRITICAL FIX: Ensure chat.personaUsed is perfectly bound to the active view state immediately
+    // Explicitly lock the selected persona down right away
     if (!chat.personaUsed) {
-        chat.personaUsed = state.activePersona;
+        chat.personaUsed = state.activePersona || 'smart';
     }
 
     if (state.editingIndex !== null) {
-        chat.history[state.editingIndex].content = val;
-        chat.history = chat.history.slice(0, state.editingIndex + 1);
+        if (chat.history[state.editingIndex]) {
+            chat.history[state.editingIndex].content = val;
+            chat.history = chat.history.slice(0, state.editingIndex + 1);
+        }
         state.editingIndex = null;
     } else {
+        if (!chat.history) chat.history = [];
         if (chat.history.length === 0) chat.title = val.substring(0, 25);
         chat.history.push({ role: 'user', content: val });
     }
 
     input.value = '';
     updateUI(true);
-    renderThreads(); // Keep sidebar thread cards synced with badges live
+    renderThreads(); 
     save();
 
     try {
-        // Enforce sticky persona execution configuration context
-        const targetPersona = chat.personaUsed || state.activePersona;
+        const targetPersona = chat.personaUsed || state.activePersona || 'smart';
+        
+        // Clean history filter array payload to ensure the server receives no corrupt/undefined objects
+        const cleanHistory = chat.history.map(item => ({
+            role: item.role === 'model' ? 'assistant' : item.role,
+            content: item.content
+        }));
+
         const res = await fetch("/api/chat", {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -82,28 +111,43 @@ async function handleMessageSubmit(e) {
                 messages: [
                     { 
                         role: "system", 
-                        content: `${SYSTEM_PERSONAS[targetPersona]} STRICT RULE: Respond in full English by default. Only switch to natural Hinglish if the user explicitly text messages you in Hindi. Keep responses precise, short, and to the point. Absolutely no cringey or dramatic expressions.` 
+                        content: `${SYSTEM_PERSONAS[targetPersona]} STRICT RULE: Respond in full English by default. Only switch to natural Hinglish if the user explicitly texts you in Hindi. Keep responses precise, short, and to the point. Absolutely no cringey or dramatic expressions.` 
                     }, 
-                    ...chat.history
+                    ...cleanHistory
                 ]
             })
         });
+
+        if (!res.ok) throw new Error("Server response error");
+
         const data = await res.json();
-        chat.history.push({ role: 'model', content: data.choices[0].message.content });
+        
+        if (data && data.choices && data.choices[0] && data.choices[0].message) {
+            chat.history.push({ role: 'model', content: data.choices[0].message.content });
+        } else {
+            throw new Error("Invalid payload mapping structure");
+        }
+
     } catch (err) {
+        console.error(err);
         chat.history.push({ role: 'model', content: "Connection reset. Let's try sending that response again! ⚡" });
     }
 
-    updateUI(false); save(); renderThreads();
+    updateUI(false); 
+    save(); 
+    renderThreads();
 }
 
 function updateUI(isTyping = false) {
     const v = document.getElementById('chat-messages-viewport');
+    if (!v) return;
+
     const chat = state.chats.find(c => c.id === state.activeChatId);
-    if (!chat || chat.history.length === 0) {
+    if (!chat || !chat.history || chat.history.length === 0) {
         v.innerHTML = `<div class="h-full w-full flex items-center justify-center opacity-10 my-auto select-none"><h2 class="text-4xl md:text-5xl font-black fused-text text-center tracking-wider">HOW YOU DOIN'?</h2></div>`;
         return;
     }
+    
     v.innerHTML = chat.history.map((m, i) => `
         <div class="flex w-full ${m.role === 'user' ? 'justify-end' : 'justify-start'} mb-6 group relative animate-fadeIn">
             <div class="p-4 rounded-2xl max-w-[85%] text-sm ${m.role === 'user' ? 'bg-neonPurple text-white' : 'bg-white/5 border border-white/10 text-slate-200'}">
@@ -111,15 +155,17 @@ function updateUI(isTyping = false) {
             </div>
             ${m.role === 'user' ? `<button onclick="triggerEdit(${i})" class="absolute -bottom-5 right-2 opacity-0 group-hover:opacity-100 text-[10px] text-slate-500 hover:text-neonSky transition-all">Edit</button>` : ''}
         </div>
-    `).join('') + (isTyping ? `<div class="text-neonSky text-[10px] font-bold tracking-widest uppercase animate-pulse">Typing...</div>` : '');
+    `).join('') + (isTyping ? `<div class="text-neonSky text-[10px] font-bold tracking-widest uppercase animate-pulse">WRITING...</div>` : '');
     v.scrollTop = v.scrollHeight;
 }
 
 function renderThreads() {
     const container = document.getElementById('chat-threads-container');
+    if (!container) return;
+
     const filtered = state.chats.filter(c => (c.title || "").toLowerCase().includes(state.searchTerm));
     container.innerHTML = filtered.map(c => {
-        const badge = PERSONA_LABELS[c.personaUsed || state.activePersona];
+        const badge = PERSONA_LABELS[c.personaUsed || state.activePersona || 'smart'];
         return `
             <div onclick="switchChat('${c.id}')" class="p-3 rounded-xl border mb-2 cursor-pointer transition-all ${c.id === state.activeChatId ? 'border-neonPurple bg-neonPurple/10' : 'border-white/5 hover:bg-white/5'}">
                 <div class="flex justify-between items-center">
@@ -146,8 +192,10 @@ function setPersona(p) {
 
 function triggerEdit(i) {
     const chat = state.chats.find(c => c.id === state.activeChatId);
-    document.getElementById('chat-message-payload').value = chat.history[i].content;
-    state.editingIndex = i;
+    if (chat && chat.history[i]) {
+        document.getElementById('chat-message-payload').value = chat.history[i].content;
+        state.editingIndex = i;
+    }
 }
 
 function createNewChat() {
@@ -166,4 +214,11 @@ function switchChat(id) {
     if (window.innerWidth < 768) toggleSidebar(); 
 }
 
-function deleteChat(id, e) { e.stopPropagation(); state.chats = state.chats.filter(c => c.id !== id); if (state.activeChatId === id) state.activeChatId = null; renderThreads(); updateUI(); save(); }
+function deleteChat(id, e) { 
+    e.stopPropagation(); 
+    state.chats = state.chats.filter(c => c.id !== id); 
+    if (state.activeChatId === id) {
+        state.activeChatId = state.chats.length > 0 ? state.chats[0].id : null;
+    }
+    renderThreads(); updateUI(); save(); 
+}
